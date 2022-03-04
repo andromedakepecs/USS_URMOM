@@ -11,6 +11,7 @@ Internal sensing
 Monitors internal temperature to trigger heating pads (9600 baud ok),
 Read and print gps and pressure data (baud??)
 Sync with real time clock (9600 baud)
+TODO Pressure code
 
 By USS Urmom
 @author Andromeda Kepecs
