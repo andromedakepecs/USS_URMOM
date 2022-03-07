@@ -11,9 +11,10 @@ SFE_UBLOX_GNSS myGNSS;
 /*
 Arduino A
 Internal sensing
-Monitors internal temperature to trigger heating pads (9600 baud ok),
-Read and print gps and pressure data (baud??)
-Sync with real time clock (9600 baud)
+  Monitors internal temperature using 10k ohm thermistor in series with 10k ohm resistor
+  Triggers heating pads at cold temperatures
+  Read and print gps data using Sparkfun SAM-M8Q(baud??)
+  Connects to RTC module DS3234 (9600 baud)
 
 By USS Urmom
 @author Andromeda Kepecs
@@ -22,7 +23,6 @@ By USS Urmom
 // Digital output pins
 const int HEAT_PAD = 10;
 const int RTC = 10;
-// RTC and gps use additional pins
 
 // Analog input pins
 const int THERM_PIN = 0; // Connect other end of thermistor to 5V
@@ -54,9 +54,9 @@ void setup() {
 
   pinMode(HEAT_PAD, OUTPUT);
 
-  //Wire.begin();
+  Wire.begin();
 
-  /*if (myGNSS.begin() == false) // Connect to the u-blox module using Wire port
+  if (myGNSS.begin() == false) // Connect to the u-blox module using Wire port
   {
     Serial.println(F("u-blox GNSS not detected at default I2C address. Please check wiring. Freezing."));
     while (1);
@@ -64,7 +64,6 @@ void setup() {
 
   myGNSS.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
   myGNSS.saveConfigSelective(VAL_CFG_SUBSEC_IOPORT); // Save (only) the communications port settings to flash and BBR
-  */
 
   // csv file headers
   Serial.println("Hour,Minute,Second,Temperature(C),Heatpad_on?,Latitude,Longitude,Altitude");
@@ -79,12 +78,10 @@ void loop() {
   int hour = rtc.hour();
 
   // Read GPS data
-  // Query module only every second. Doing it more often will just cause I2C traffic.
-  // The module only responds when a new position is available
-  /*long latitude = myGNSS.getLatitude();
+  // This module only responds when a new position is available?
+  long latitude = myGNSS.getLatitude();
   long longitude = myGNSS.getLongitude();
   long altitude = myGNSS.getAltitude();
-  byte SIV = myGNSS.getSIV();*/
 
   // Read temperature
   int Vo = analogRead(THERM_PIN); // Read in voltage from thermistor pin
@@ -109,17 +106,19 @@ void loop() {
   Serial.print(",");
   Serial.print(second);
   Serial.print(",");
+
   Serial.print(temperature);
   Serial.print(",");
   Serial.print(heatpad_on);
   Serial.print(",");
-  Serial.println();
-  /*
+  
   Serial.print(latitude);
   Serial.print(",");
   Serial.print(longitude);
   Serial.print(",");
-  Serial.print(altitude);*/
+  Serial.print(altitude);
+
+  Serial.println();
 
   delay(DELAY * SEC); // Delay in seconds between updates
 }
