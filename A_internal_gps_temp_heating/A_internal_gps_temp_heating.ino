@@ -4,7 +4,7 @@ Internal sensing
   Monitors internal temperature using 10k ohm thermistor in series with 10k ohm resistor
   Triggers heating pads at cold temperatures
   Read and print gps data using Sparkfun SAM-M8Q
-    - //http://librarymanager/All#SparkFun_u-blox_GNSS 
+    - //https://github.com/sparkfun/SparkFun_u-blox_SAM-M8Q
   Connects to RTC module DS3234
     - https://github.com/sparkfun/SparkFun_DS3234_RTC_Arduino_Library 
 
