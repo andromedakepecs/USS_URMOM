@@ -1,31 +1,30 @@
-#include <SparkFunDS3234RTC.h>
-#include <SPI.h>
-
-#define DS13074_CS_PIN 10
-
-#include <Wire.h> //Needed for I2C to GNSS
-
-#include <SparkFun_u-blox_GNSS_Arduino_Library.h> //http://librarymanager/All#SparkFun_u-blox_GNSS
-SFE_UBLOX_GNSS myGNSS;
-
 /*
-Arduino A
+USS Urmom: Arduino A
 Internal sensing
   Monitors internal temperature using 10k ohm thermistor in series with 10k ohm resistor
   Triggers heating pads at cold temperatures
-  Read and print gps data using Sparkfun SAM-M8Q(baud??)
-  Connects to RTC module DS3234 (9600 baud)
+  Read and print gps data using Sparkfun SAM-M8Q
+    - //http://librarymanager/All#SparkFun_u-blox_GNSS 
+  Connects to RTC module DS3234
+    - https://github.com/sparkfun/SparkFun_DS3234_RTC_Arduino_Library 
 
-By USS Urmom
 @author Andromeda Kepecs
 */
 
+#include <SparkFunDS3234RTC.h>
+#include <SPI.h>
+
+#include <Wire.h> //Needed for I2C to GNSS
+
+#include <SparkFun_u-blox_GNSS_Arduino_Library.h> 
+SFE_UBLOX_GNSS myGNSS;
+
 // Digital output pins
-const int HEAT_PAD = 10;
-const int RTC = 10;
+#define HEAT_PAD_PIN 5
+#define RTC_PIN 10
 
 // Analog input pins
-const int THERM_PIN = 0; // Connect other end of thermistor to 5V
+#define THERM_PIN 0
 
 // Temps to trigger heating pad in Celcius
 const int MIN_TEMP = 10;
@@ -37,35 +36,34 @@ const float SH_B = 0.000234711863267;
 const float SH_C = 0.000000085663516;
 
 // Value of resistor used in series with thermistor
-const float R1 = 10000;
+const float RESISTANCE1 = 10000;
 
 // Timing
-const int DELAY = 5; // How many seconds the sensor takes a reading
+const int DELAY = 5; // How many seconds the sensor takes a reading, TODO adjust
 const int SEC = 1000; // 1 sec = 1000 ms
 const int BAUD_RATE = 9600;
 
 void setup() {
-  rtc.begin(RTC);
+  rtc.begin(RTC_PIN);
   Serial.begin(BAUD_RATE);
 
   // RTC has been configured, behind by approx 10 sec
   //rtc.setTime(0, 12, 18, 1, 6, 3, 22);
   //rtc.autoTime(); 
 
-  pinMode(HEAT_PAD, OUTPUT);
+  pinMode(HEAT_PAD_PIN, OUTPUT);
 
   Wire.begin();
 
   if (myGNSS.begin() == false) // Connect to the u-blox module using Wire port
   {
     Serial.println(F("u-blox GNSS not detected at default I2C address. Please check wiring. Freezing."));
-    while (1);
   }
 
   myGNSS.setI2COutput(COM_TYPE_UBX); // Set the I2C port to output UBX only (turn off NMEA noise)
   myGNSS.saveConfigSelective(VAL_CFG_SUBSEC_IOPORT); // Save (only) the communications port settings to flash and BBR
 
-  // csv file headers
+  // csv file header
   Serial.println("Hour,Minute,Second,Temperature(C),Heatpad_on?,Latitude,Longitude,Altitude");
 }
 
@@ -84,18 +82,16 @@ void loop() {
   long altitude = myGNSS.getAltitude();
 
   // Read temperature
-  int Vo = analogRead(THERM_PIN); // Read in voltage from thermistor pin
-  float R2 = calculate_resistance(Vo, R1);
-  int temperature = int(calculate_temperature(R2));  
+  int temperature = calculate_temperature(THERM_PIN);
 
   // Trigger heating pad if below min temperature
   bool heatpad_on = false;
   if (temperature < MIN_TEMP) {
-    digitalWrite(HEAT_PAD, HIGH);
+    digitalWrite(HEAT_PAD_PIN, HIGH);
     heatpad_on = true;
   }
   else if (temperature > MAX_TEMP) {
-    digitalWrite(HEAT_PAD, LOW);
+    digitalWrite(HEAT_PAD_PIN, LOW);
     heatpad_on = false;
   }
 
@@ -123,23 +119,16 @@ void loop() {
   delay(DELAY * SEC); // Delay in seconds between updates
 }
 
-/* Calculate resistance of thermistor from voltage reading
-@param int v, voltage reading
-@param float r1, value of resistor in series
-returns float r2
+/*
+Calculate temperature using Steinhart-Hart equation and coefficients
+@param int analog pin being read from
+returns float temperature
 */
-float calculate_resistance(int v, float r1) {
-  float r2 = r1 * (1023.0 / float(v) - 1.0);
-  return r2;
-}
-
-/* Calculate temperature using Steinhart-Hart equation and coefficients for a 10k ohm resistor
-@param float r, resistance of thermistor
-returns float temperature in degrees celcius
-*/
-float calculate_temperature(float r) {
-  float logr = log(r);
-  float temperature = (1.00 / (SH_A + SH_B*logr + SH_C*logr*logr*logr)); // Temperature in Kelvin
-  temperature -= 273.15; // Temperature in celcius
+float calculate_temperature(int pin) {
+  float voltage_out = analogRead(pin);
+  float resistance2 = RESISTANCE1 * (1023 / voltage_out - 1.00);
+  float logr = log(resistance2);
+  int temperature = int(1.00 / (SH_A + SH_B*logr + SH_C*logr*logr*logr));
+  temperature -= 273.15; // Convert to celcius
   return temperature;
 }
