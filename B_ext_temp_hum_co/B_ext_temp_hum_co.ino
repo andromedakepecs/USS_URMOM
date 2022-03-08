@@ -52,7 +52,16 @@ void setup() {
   rtc.begin(RTC_PIN);
 
   // TODO Configure RTC
-  //rtc.setTime(0, 12, 18, 1, 6, 3, 22);
+  
+  int sec = 20;
+  int min = 8;
+  int hour = 18;
+  int day_week = 2; // sunday = 1 etc
+  int day = 7;
+  int month = 3;
+  int year = 22;
+  rtc.setTime(sec, min, hour, day_week, day, month, year);
+  
   //rtc.autoTime(); 
 
   // csv file header

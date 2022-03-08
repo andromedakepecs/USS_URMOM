@@ -24,7 +24,7 @@ SFE_UBLOX_GNSS myGNSS;
 #define RTC_PIN 10
 
 // Analog input pins
-#define THERM_PIN 0
+#define THERM_PIN 2
 
 // Temps to trigger heating pad in Celcius
 const int MIN_TEMP = 10;
