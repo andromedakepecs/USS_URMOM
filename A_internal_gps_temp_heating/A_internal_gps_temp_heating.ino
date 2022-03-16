@@ -47,8 +47,15 @@ void setup() {
   rtc.begin(RTC_PIN);
   Serial.begin(BAUD_RATE);
 
-  // RTC has been configured, behind by approx 10 sec
-  //rtc.setTime(0, 12, 18, 1, 6, 3, 22);
+  // RTC configure
+  /*int sec = 0;
+  int min = 19;
+  int hour = 16;
+  int dayweek = 3;
+  int day = 15;
+  int month = 3;
+  int year = 22;
+  rtc.setTime(sec, min, hour, dayweek, day, month, year);*/
   //rtc.autoTime(); 
 
   pinMode(HEAT_PAD_PIN, OUTPUT);
@@ -74,6 +81,9 @@ void loop() {
   int second = rtc.second();
   int minute = rtc.minute();
   int hour = rtc.hour();
+  int date = rtc.date();
+  int month = rtc.month();
+  int year = rtc.year();
 
   // Read GPS data
   // This module only responds when a new position is available?
@@ -96,6 +106,12 @@ void loop() {
   }
 
   // Print all data in csv format
+  Serial.print(year);
+  Serial.print(",");
+  Serial.print(month);
+  Serial.print(",");
+  Serial.print(date);
+  Serial.print(",");
   Serial.print(hour);
   Serial.print(",");
   Serial.print(minute);

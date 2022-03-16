@@ -53,11 +53,11 @@ void setup() {
 
   // TODO Configure RTC
   
-  int sec = 20;
-  int min = 8;
-  int hour = 18;
-  int day_week = 2; // sunday = 1 etc
-  int day = 7;
+  int sec = 0;
+  int min = 37;
+  int hour = 15;
+  int day_week = 3; // sunday = 1 etc
+  int day = 9;
   int month = 3;
   int year = 22;
   rtc.setTime(sec, min, hour, day_week, day, month, year);
